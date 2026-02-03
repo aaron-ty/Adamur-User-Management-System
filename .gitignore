@@ -1,0 +1,21 @@
+node_modules\n.env\ndist\nvenv
+/prisma/migrations/*
+/tests/*
+
+# Ignore bundler config.
+/.bundle
+/venv
+
+# Ignore all environment files (except templates).
+/.env*
+!/.env*.erb
+
+# Ignore all logfiles and tempfiles.
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+
+/node_modules
+
+documentation/Adamur User Management System.docx
