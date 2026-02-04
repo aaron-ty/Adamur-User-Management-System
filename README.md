@@ -1,245 +1,144 @@
+---
+
+````markdown
+# Adamur: Secure User Management Backend
+
+## Overview
+Adamur is a modular, production-oriented backend for user management on educational platforms. 
+It provides secure registration, authentication, account verification, and password reset workflows through a GraphQL API. 
+
+The system emphasizes maintainability, security, and scalability, with explicit architectural decisions to support real-world usage.
+
+### Key Design Highlights
+- JWT-based authentication and role-based access control
+- Modular GraphQL API layer for maintainable and extensible operations
+- Prisma-based database modeling with migrations for reproducible schema
+- Email verification and password reset workflows via configurable SMTP
+- Environment-driven configuration for secure deployments
 
 ---
 
-# Adamur User Management System
+## Architecture
+Adamur is designed as a backend-first service with clear separation of concerns:
 
-## Overview
+1. **API Layer** – GraphQL mutations handle all user operations.
+2. **Authentication & Security** – JWT tokens for stateless authentication, role-based access control for resource protection.
+3. **Persistence Layer** – Prisma ORM with MySQL (or compatible) backend; migrations ensure consistent schema management.
+4. **Email Layer** – SMTP integration for account verification and password reset notifications.
+5. **Environment Config** – All credentials and secrets stored in `.env` to isolate runtime configuration from code.
 
-The Adamur User Management System is a modular and secure user management solution designed for educational platforms. It allows users to register, authenticate, and manage their accounts while ensuring data security and compliance with best practices.
+This design prioritizes **security, observability, and modularity** for production-grade deployments.
 
-## Table of Contents
+---
 
-1. [Getting Started](#getting-started)
-2. [Prerequisites](#prerequisites)
-3. [Installation](#installation)
-4. [Running the Project](#running-the-project)
-5. [API Endpoints](#api-endpoints)
-6. [Inputs and Expected Outputs](#inputs-and-expected-outputs)
-7. [License](#license)
+## Setup & Installation
+**Prerequisites**:
+- Python 3.x (for any backend scripts or utilities)
+- Node.js v14+ with npm
+- MySQL or compatible database
+- TypeScript installed globally (`npm install -g typescript`)
 
-## Getting Started
-
-Follow the instructions below to set up and run the Adamur User Management System locally.
-
-## Prerequisites
-
-Before running the project, ensure you have the following installed on your machine:
-
-- **Windows Subsystem for Linux (WSL)**
-- **Python3** for setting up a virtual environment (venv)
-- **Node.js** (v14 or higher)
-- **npm** (Node package manager, included with Node.js)
-- **TypeScript** (globally installed; you can install it using `npm install -g typescript`)
-- **MySQL** (or another compatible database)
-
-## Installation
-
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/yourusername/adamur-user-management.git
-   cd adamur-user-management
-   ```
-
-2. Set Up a Virtual Environment (venv)
-
-To isolate the environment and manage dependencies:
+**Installation**:
 
 ```bash
-sudo apt-get update
-sudo apt-get install python3-venv
-python3 -m venv venv
-source venv/bin/activate
+git clone https://github.com/yourusername/adamur-user-management.git
+cd adamur-user-management
+npm install
+````
+
+**Environment configuration**:
+
+Create a `.env` file:
+
+```env
+DATABASE_URL=mysql://<username>:<password>@localhost:<port>/<database_name>
+JWT_SECRET=your_jwt_secret
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USER=your-email@example.com
+SMTP_PASS=your-email-password
 ```
 
-This will create and activate a virtual environment within your project.
+**Database setup**:
 
+```bash
+npx prisma migrate dev --name init
+```
 
-3. Install the necessary dependencies:
+---
 
-   ```bash
-   npm install
-   ```
-
-4. Create a `.env` file in the root directory and add the following environment variables:
-
-   ```plaintext
-   DATABASE_URL=mysql://<username>:<password>@localhost:<port>/<database_name>
-   JWT_SECRET=your_jwt_secret
-   SMTP_HOST=smtp.your-email.com
-   SMTP_PORT=587
-   SMTP_USER=your-email@example.com
-   SMTP_PASS=your-email-password
-   ```
-
-   Replace placeholders with your actual database credentials and SMTP details.
-
-5. Set up the database schema using Prisma:
-
-   ```bash
-   npx prisma migrate dev --name init
-   ```
-
-## Running the Project
-
-To start the development server, run the following command:
+## Running the Backend
 
 ```bash
 npm run dev
 ```
 
-This will start the server using `nodemon` and `ts-node`, allowing for automatic restarts on file changes.
+Server runs on `http://localhost:4000` with hot reload via `ts-node` and `nodemon`.
 
-The server will run on `http://localhost:4000` by default.
+---
 
-## API Endpoints
+## GraphQL API Endpoints
 
-The system exposes the following GraphQL endpoints:
+| Mutation               | Description                                |
+| ---------------------- | ------------------------------------------ |
+| `registerUser`         | Creates a new user account                 |
+| `loginUser`            | Authenticates a user and returns JWT token |
+| `verifyAccount`        | Verifies email via token                   |
+| `requestPasswordReset` | Sends password reset email                 |
+| `resetPassword`        | Resets password using token                |
 
-1. **User Registration**: `registerUser`
-2. **User Login**: `loginUser`
-3. **Account Verification**: `verifyAccount`
-4. **Password Reset Request**: `requestPasswordReset`
-5. **Password Reset**: `resetPassword`
+### Example: Register User
 
-## Inputs and Expected Outputs
+```graphql
+mutation {
+  registerUser(username: "john_doe", email: "john@example.com", password: "securepassword") {
+    id
+    username
+    email
+  }
+}
+```
 
-### 1. User Registration
+**Response**:
 
-**Mutation**: `registerUser`
-
-- **Input**:
-  ```graphql
-  mutation {
-    registerUser(username: "john_doe", email: "john@example.com", password: "securepassword") {
-      id
-      username
-      email
+```json
+{
+  "data": {
+    "registerUser": {
+      "id": "1",
+      "username": "john_doe",
+      "email": "john@example.com"
     }
   }
-  ```
+}
+```
 
-- **Expected Output**:
-  ```json
-  {
-    "data": {
-      "registerUser": {
-        "id": "1",
-        "username": "john_doe",
-        "email": "john@example.com"
-      }
-    }
-  }
-  ```
+> All other mutations follow the same pattern: concise inputs and structured JSON outputs.
 
-### 2. User Login
+---
 
-**Mutation**: `loginUser`
+## Operational Notes
 
-- **Input**:
-  ```graphql
-  mutation {
-    loginUser(email: "john@example.com", password: "securepassword") {
-      token
-      user {
-        id
-        username
-        email
-      }
-    }
-  }
-  ```
+* Designed for **modular expansion**: adding roles, MFA, or analytics can be done without major refactors.
+* JWT tokens are stateless; server scales horizontally with no session dependency.
+* SMTP is fully configurable; supports any standard provider.
+* Prisma migrations provide deterministic schema updates; suitable for CI/CD pipelines.
+* All sensitive data lives in `.env`; no secrets in code.
 
-- **Expected Output**:
-  ```json
-  {
-    "data": {
-      "loginUser": {
-        "token": "eyJhbGciOiJIUzI1NiIsInR...",
-        "user": {
-          "id": "1",
-          "username": "john_doe",
-          "email": "john@example.com"
-        }
-      }
-    }
-  }
-  ```
+---
 
-### 3. Account Verification
+## Limitations
 
-**Mutation**: `verifyAccount`
+* Not production load-tested; for educational or prototype deployments, performance is sufficient.
+* Email layer assumes reliable SMTP; no retry/backoff is currently implemented.
+* Password reset tokens are ephemeral; ensure secure token storage if extended.
 
-- **Input**:
-  ```graphql
-  mutation {
-    verifyAccount(token: "verification_token_here") {
-      message
-    }
-  }
-  ```
-
-- **Expected Output**:
-  ```json
-  {
-    "data": {
-      "verifyAccount": {
-        "message": "Account verified successfully!"
-      }
-    }
-  }
-  ```
-
-### 4. Password Reset Request
-
-**Mutation**: `requestPasswordReset`
-
-- **Input**:
-  ```graphql
-  mutation {
-    requestPasswordReset(email: "john@example.com") {
-      message
-    }
-  }
-  ```
-
-- **Expected Output**:
-  ```json
-  {
-    "data": {
-      "requestPasswordReset": {
-        "message": "Password reset link sent to your email."
-      }
-    }
-  }
-  ```
-
-### 5. Password Reset
-
-**Mutation**: `resetPassword`
-
-- **Input**:
-  ```graphql
-  mutation {
-    resetPassword(token: "password_reset_token_here", newPassword: "new_securepassword") {
-      message
-    }
-  }
-  ```
-
-- **Expected Output**:
-  ```json
-  {
-    "data": {
-      "resetPassword": {
-        "message": "Password reset successfully!"
-      }
-    }
-  }
-  ```
+---
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License – see [LICENSE](LICENSE)
+
+```
 
 ---
