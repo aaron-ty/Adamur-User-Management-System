@@ -1,6 +1,5 @@
 ---
 
-````markdown
 # Adamur: Secure User Management Backend
 
 ## Overview
@@ -138,7 +137,5 @@ mutation {
 ## License
 
 MIT License – see [LICENSE](LICENSE)
-
-```
 
 ---
